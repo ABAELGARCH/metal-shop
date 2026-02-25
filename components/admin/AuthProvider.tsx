@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.replace('/admin/login')
   }
 
-  const authHeader = () =>
+  const authHeader = (): Record<string, string> =>
     token ? { Authorization: `Bearer ${token}` } : {}
 
   if (!checked) {

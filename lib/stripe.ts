@@ -1,11 +1,19 @@
 import Stripe from 'stripe'
 
-const globalForStripe = globalThis as unknown as { stripe: Stripe }
+let _stripe: Stripe | null = null
 
-export const stripe =
-  globalForStripe.stripe ||
-  new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2024-11-20.acacia',
-  })
+export function getStripe(): Stripe {
+  if (!_stripe) {
+    _stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: '2025-02-24.acacia',
+    })
+  }
+  return _stripe
+}
 
-if (process.env.NODE_ENV !== 'production') globalForStripe.stripe = stripe
+// Convenience export used in route handlers
+export const stripe = new Proxy({} as Stripe, {
+  get(_target, prop) {
+    return getStripe()[prop as keyof Stripe]
+  },
+})
