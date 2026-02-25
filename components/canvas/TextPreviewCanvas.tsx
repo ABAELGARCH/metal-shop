@@ -29,7 +29,6 @@ export function TextPreviewCanvas({
       <canvas
         ref={canvasRef}
         className="w-full h-auto block"
-        style={{ aspectRatio: '3/2' }}
       />
       <div className="absolute top-2 right-2">
         <span className="text-xs text-brand-steel bg-black/50 px-2 py-0.5 rounded">

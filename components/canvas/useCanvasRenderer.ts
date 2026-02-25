@@ -9,11 +9,11 @@ export function useCanvasRenderer(
   backgroundUrl: string,
   zones: CustomizationZone[],
   values: ZoneValues,
-  canvasWidth = 1200,
-  canvasHeight = 800
 ) {
   const bgImageRef = useRef<HTMLImageElement | null>(null)
   const rafRef = useRef<number | null>(null)
+  // Canvas dimensions follow the image's natural size (avoids distortion)
+  const dimsRef = useRef({ w: 1200, h: 800 })
 
   // Load background image once
   useEffect(() => {
@@ -21,10 +21,10 @@ export function useCanvasRenderer(
     img.crossOrigin = 'anonymous'
     img.onload = () => {
       bgImageRef.current = img
+      dimsRef.current = { w: img.naturalWidth, h: img.naturalHeight }
       scheduleRender()
     }
     img.onerror = () => {
-      // Draw a steel-texture placeholder if image fails
       bgImageRef.current = null
       scheduleRender()
     }
@@ -49,24 +49,25 @@ export function useCanvasRenderer(
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    canvas.width = canvasWidth
-    canvas.height = canvasHeight
+    const { w, h } = dimsRef.current
+    canvas.width = w
+    canvas.height = h
 
     // Background
     if (bgImageRef.current) {
-      ctx.drawImage(bgImageRef.current, 0, 0, canvasWidth, canvasHeight)
+      ctx.drawImage(bgImageRef.current, 0, 0, w, h)
     } else {
       // Placeholder gradient
-      const grad = ctx.createLinearGradient(0, 0, canvasWidth, canvasHeight)
+      const grad = ctx.createLinearGradient(0, 0, w, h)
       grad.addColorStop(0, '#2C2C2C')
       grad.addColorStop(1, '#1A1A1A')
       ctx.fillStyle = grad
-      ctx.fillRect(0, 0, canvasWidth, canvasHeight)
+      ctx.fillRect(0, 0, w, h)
 
       // Metal texture dots
       ctx.fillStyle = 'rgba(255,255,255,0.02)'
-      for (let x = 0; x < canvasWidth; x += 20) {
-        for (let y = 0; y < canvasHeight; y += 20) {
+      for (let x = 0; x < w; x += 20) {
+        for (let y = 0; y < h; y += 20) {
           ctx.fillRect(x, y, 1, 1)
         }
       }
@@ -111,7 +112,7 @@ export function useCanvasRenderer(
 
       ctx.restore()
     }
-  }, [canvasRef, canvasWidth, canvasHeight, zones, values])
+  }, [canvasRef, zones, values])
 
   const scheduleRender = useCallback(() => {
     if (rafRef.current !== null) cancelAnimationFrame(rafRef.current)
